@@ -6,6 +6,7 @@ from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 from flask_mail import Mail, Message
 from flask_cors import CORS, cross_origin
+import datetime
 
 
 
@@ -14,7 +15,7 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'planets.db')
 app.config['JWT_SECRET_KEY'] = 'super-secret'  # change this IRL
-app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['CORS_HEADERS'] = 'application/json'
 
 
 
@@ -104,7 +105,9 @@ def add_user():
 			for i in experiences:
 				organization = i['organization']
 				role = i['role']
-				duration = int(i['duration'])
+				from_date  = datetime.datetime.strptime(i['from'][:10], '%Y-%m-%d')
+				to_date = datetime.datetime.strptime(i['to'][:10], '%Y-%m-%d')
+				duration = (to_date.year - from_date.year) * 12 + (to_date.month - from_date.month)
 				description = i['description']
 				exp = Experience(organization=organization,
 		                            role=role,
@@ -115,7 +118,7 @@ def add_user():
 			projects = request.json['projects']
 			for i in projects:
 				title = i['title']
-				desc = i['desc']
+				desc = i['description']
 				link = i['link']
 				project = Project(title=title,
 		                            desc=desc,
@@ -123,10 +126,13 @@ def add_user():
 		                            user = new_user)
 			educations = request.json['educations']
 			for i in educations:
-				school = i['school']
+				school = i['college']
 				degree = i['degree']
 				description = i['description']
-				duration = int(i['duration'])
+				from_date  = datetime.datetime.strptime(i['from'][:10], '%Y-%m-%d')
+				to_date = datetime.datetime.strptime(i['to'][:10], '%Y-%m-%d')
+				duration = (to_date.year - from_date.year) * 12 + (to_date.month - from_date.month)
+				# duration = int(i['duration'])
 				education = Education(school=school,
 		                            degree=degree,
 		                            description=description,
@@ -169,7 +175,8 @@ def get_user(user_name:str):
 		user_data = user_info.dump(test)
 		exp_data = exp_info.dump(test.experiences)
 		project_data = project_info.dump(test.projects)
-		data = jsonify({'UserData':user_data,'Experiencs':exp_data, 'Projects':project_data})
+		edu_data = edu_info.dump(test.educations)
+		data = jsonify({'UserData':user_data,'Experiences':exp_data, 'Projects':project_data, 'Educations':edu_data})
 
 		return data
 	else:
@@ -236,6 +243,12 @@ class ProjectSchema(ma.Schema):
         fields = ('title', 'desc', 'link')
 
 project_info = ProjectSchema(many=True)
+
+class EducationSchema(ma.Schema):
+    class Meta:
+        fields = ('school', 'degree', 'duration', 'description')
+
+edu_info = EducationSchema(many=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
