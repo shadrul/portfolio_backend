@@ -81,6 +81,8 @@ def db_drop():
 @app.route('/')
 def hello():
 	return "hello"
+
+	
 @app.route('/add_user', methods=['POST'])
 # @jwt_required
 @cross_origin()
