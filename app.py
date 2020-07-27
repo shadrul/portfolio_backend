@@ -13,7 +13,7 @@ import datetime
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'planets.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL','sqlite:///planets.db')
 app.config['JWT_SECRET_KEY'] = 'super-secret'  # change this IRL
 app.config['CORS_HEADERS'] = 'application/json'
 
@@ -82,7 +82,7 @@ def db_drop():
 def hello():
 	return "hello"
 
-	
+
 @app.route('/add_user', methods=['POST'])
 # @jwt_required
 @cross_origin()
